@@ -1,0 +1,71 @@
+# distill — example configuration
+# Copy to ~/.distill/config.toml and edit.
+# Every backend declares a tier; every feature has a Tier 1 fallback.
+
+[general]
+data_dir = "~/.distill"              # where daily reading files go
+default_source = "local"             # local | burn | pocket | raindrop
+default_language = "zh-CN"           # auto-detect fallback
+log_level = "info"                   # debug | info | warn | error
+
+# -------- Fetchers --------
+
+[fetcher.local]                      # Tier 1: zero-install
+path = "./urls.txt"                  # one URL per line
+watch = false                        # auto-fetch on file change
+
+[fetcher.burn]                       # Tier 2: MCP-backed
+mcp_token_env = "BURN_MCP_TOKEN"     # env var name (not the token)
+api_base = "https://api.burn451.cloud"
+since_hours = 24                     # only fetch last N hours
+
+[fetcher.pocket]                     # Tier 3: placeholder (alpha)
+# consumer_key_env = "POCKET_KEY"    # not implemented yet
+
+[fetcher.raindrop]                   # Tier 3: placeholder (alpha)
+# token_env = "RAINDROP_TOKEN"       # not implemented yet
+
+# -------- Speech to text --------
+
+[stt]
+backend = "whisper-cli"              # Tier 2 default
+fallback = "macos-native"            # Tier 1 always-on
+model_path = "~/.distill/models/ggml-base.bin"
+language = "auto"                    # auto | zh-CN | en-US | ...
+
+# -------- Text to speech --------
+
+[tts]
+backend = "edge-tts"                 # Tier 2 default
+fallback = "macos-say"               # Tier 1 always-on
+voice = "zh-CN-XiaoxiaoNeural"       # backend-specific voice id
+rate = "+0%"                         # edge-tts rate prosody
+volume = "+0%"                       # edge-tts volume prosody
+
+# -------- LLM --------
+
+[llm]
+backend = "claude-code"              # user's own Claude Code session
+fallback = "none"                    # no fallback; user must configure
+model = "claude-opus-4-7"            # backend-specific model id
+
+# -------- Triage (Stage 1) --------
+
+[triage]
+max_read = 3                         # max articles to READ yourself
+max_delegate = 2                     # max to DELEGATE to Claude
+cluster_similarity_threshold = 0.7   # 0..1 cosine threshold
+
+# -------- Voice companion --------
+
+[voice]
+hotkey = "alt+space"                 # global shortcut
+push_to_talk = true                  # false for toggle mode
+timeout_seconds = 60                 # auto-stop after silence
+
+# -------- Artifact renderer --------
+
+[artifact]
+format = "markdown"                  # markdown | html | both
+html_theme = "default"               # default | minimal | dark
+quote_ratio_target = 0.30            # 30% must be author's quoted words
