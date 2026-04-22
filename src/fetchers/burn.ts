@@ -50,7 +50,7 @@ export class BurnFetcher implements Fetcher {
     const mcpToken = process.env[envVarName];
     if (!mcpToken || mcpToken.length === 0) {
       throw new Error(
-        `BurnFetcher: Missing env var ${envVarName}. Get your MCP token at https://burn451.cloud/settings/mcp`,
+        `BurnFetcher: Missing env var ${envVarName}. Get your MCP token at https://www.burn451.cloud/settings/mcp`,
       );
     }
 

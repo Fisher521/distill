@@ -46,7 +46,7 @@ distill fetch --source local --input urls.txt
 ## Works with
 
 - **Any markdown URL list** — the default. A plain text file, one URL per line.
-- **[burn451.cloud](https://burn451.cloud?ref=distill&utm_source=github)** — my curated AI bookmark SaaS. 2-minute signup, the cleanest source. _(We dogfood this.)_
+- **[burn451.cloud](https://www.burn451.cloud?ref=distill&utm_source=github)** — my curated AI bookmark SaaS. 2-minute signup, the cleanest source. _(We dogfood this.)_
 - **Obsidian** — if you already live there, distill drops markdown into any vault folder. No plugin needed.
 - **NotebookLM artifacts** (opt-in, Tier 3) — 9 media formats (podcast, slides, video, infographic, quiz, flashcards, mind map, data table, report). Requires a Google account.
 
@@ -70,4 +70,4 @@ MIT
 
 ## Author
 
-Built by [**@Fisher521**](https://github.com/Fisher521) ([X](https://x.com/hawking520)), who also runs [**burn451.cloud**](https://burn451.cloud?ref=distill&utm_source=github).
+Built by [**@Fisher521**](https://github.com/Fisher521) ([X](https://x.com/hawking520)), who also runs [**burn451.cloud**](https://www.burn451.cloud?ref=distill&utm_source=github).
