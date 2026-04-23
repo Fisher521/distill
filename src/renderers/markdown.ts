@@ -61,9 +61,33 @@ function stripJunk(text: string): string {
   return kept.join('\n');
 }
 
+const CHUNK_THRESHOLD = 600;
+const SENTENCES_PER_CHUNK = 3;
+const SENTENCE_SPLIT = /(?<=[.!?])\s+(?=[A-Z"'(\[])/;
+
+function isHeadingLine(line: string): boolean {
+  return /^#{1,6}\s/.test(line.trim());
+}
+
+function chunkBySentences(text: string): string[] {
+  const trimmed = text.trim();
+  if (trimmed.length === 0) return [];
+  if (isHeadingLine(trimmed)) return [trimmed];
+  if (trimmed.length <= CHUNK_THRESHOLD) return [trimmed];
+  const sentences = trimmed.split(SENTENCE_SPLIT);
+  if (sentences.length <= SENTENCES_PER_CHUNK) return [trimmed];
+  const out: string[] = [];
+  for (let i = 0; i < sentences.length; i += SENTENCES_PER_CHUNK) {
+    const chunk = sentences.slice(i, i + SENTENCES_PER_CHUNK).join(' ').replace(/\s+/g, ' ').trim();
+    if (chunk) out.push(chunk);
+  }
+  return out.length > 0 ? out : [trimmed];
+}
+
 function splitIntoParagraphs(text: string): string[] {
   const normalized = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
   if (normalized.trim().length === 0) return [];
+
   if (/\n{2,}/.test(normalized)) {
     const parts = normalized.split(/\n{2,}/);
     const paragraphs: string[] = [];
@@ -73,8 +97,7 @@ function splitIntoParagraphs(text: string): string[] {
       const lines = trimmed.split('\n');
       let buffer: string[] = [];
       for (const line of lines) {
-        const isHeading = /^#{1,6}\s/.test(line.trim());
-        if (isHeading) {
+        if (isHeadingLine(line)) {
           if (buffer.length > 0) {
             paragraphs.push(buffer.join('\n'));
             buffer = [];
@@ -86,8 +109,10 @@ function splitIntoParagraphs(text: string): string[] {
       }
       if (buffer.length > 0) paragraphs.push(buffer.join('\n'));
     }
-    return paragraphs.map((p) => p.replace(/[ \t]+/g, ' ').trim()).filter((p) => p.length > 0);
+    const collapsed = paragraphs.map((p) => p.replace(/[ \t]+/g, ' ').trim()).filter((p) => p.length > 0);
+    return collapsed.flatMap(chunkBySentences);
   }
+
   const collapsed = normalized.replace(/\s+/g, ' ').trim();
   if (collapsed.length === 0) return [];
   const headingMatches = collapsed.match(/^(#{1,6}\s+\S[^\n]*?)(\s+)(?=[A-Z"'(])/);
@@ -97,13 +122,9 @@ function splitIntoParagraphs(text: string): string[] {
     leadHeading = headingMatches[1].trim();
     body = collapsed.slice(headingMatches[0].length);
   }
-  const sentences = body.split(/(?<=[.!?])\s+(?=[A-Z"'(\[])/);
   const paragraphs: string[] = [];
   if (leadHeading) paragraphs.push(leadHeading);
-  for (let i = 0; i < sentences.length; i += 3) {
-    const para = sentences.slice(i, i + 3).join(' ').replace(/\s+/g, ' ').trim();
-    if (para) paragraphs.push(para);
-  }
+  paragraphs.push(...chunkBySentences(body));
   if (paragraphs.length === 0) paragraphs.push(collapsed);
   return paragraphs;
 }
