@@ -13,7 +13,15 @@ import { parseRobustJSON } from './utils/json-extract.js';
 import { getLLMAdapter, printLLMStatus } from './llm/index.js';
 import { buildAugmentedPrompt } from './prompts/augmented.js';
 import { registerTriageCommand } from './commands/triage.js';
-import type { Article, Callout, CalloutType, ClaudeInsights, Fetcher, FetcherBurnConfig } from './types.js';
+import type {
+  Article,
+  Callout,
+  CalloutType,
+  ClaudeInsights,
+  Fetcher,
+  FetcherBurnConfig,
+  LLMBackend,
+} from './types.js';
 
 interface FetchOptions {
   source: string;
@@ -116,12 +124,16 @@ program
         let insights: ClaudeInsights;
 
         if (llm) {
-          const prompt = buildAugmentedPrompt(article);
           const spinner2 = ora(`Analyzing: ${article.title ?? article.url}`).start();
           try {
-            const raw = await llm.generate(prompt.user, prompt.system);
-            insights = parseInsightsJSON(raw);
-            spinner2.succeed(`Analyzed: ${article.title ?? article.url}`);
+            const { insights: parsedInsights, retried } = await generateInsightsWithRetry(
+              llm,
+              article,
+            );
+            insights = parsedInsights;
+            spinner2.succeed(
+              `Analyzed: ${article.title ?? article.url}${retried ? ' (after JSON retry)' : ''}`,
+            );
             llmOk++;
           } catch (err) {
             spinner2.fail(`LLM failed for ${article.url}: ${err instanceof Error ? err.message : String(err)}`);
@@ -239,4 +251,38 @@ function parseInsightsJSON(raw: string): ClaudeInsights {
     );
   }
   return validateInsightsShape(parsed);
+}
+
+function buildJSONRetryPrompt(userPrompt: string, err: unknown): string {
+  const message = err instanceof Error ? err.message : String(err);
+  return `${userPrompt}
+
+---
+
+Your previous response failed strict JSON parsing/validation with this error:
+${message}
+
+Re-emit the same analysis, but with STRICT JSON formatting. All strings must
+escape newlines as \\n and double quotes as \\". Output ONLY the JSON object.`;
+}
+
+async function generateInsightsWithRetry(
+  llm: LLMBackend,
+  article: Article,
+): Promise<{ insights: ClaudeInsights; retried: boolean }> {
+  const prompt = buildAugmentedPrompt(article);
+  const raw = await llm.generate(prompt.user, prompt.system);
+
+  try {
+    return { insights: parseInsightsJSON(raw), retried: false };
+  } catch (firstErr) {
+    const retryUser = buildJSONRetryPrompt(prompt.user, firstErr);
+
+    try {
+      const retryRaw = await llm.generate(retryUser, prompt.system);
+      return { insights: parseInsightsJSON(retryRaw), retried: true };
+    } catch {
+      throw firstErr instanceof Error ? firstErr : new Error(String(firstErr));
+    }
+  }
 }

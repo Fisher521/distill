@@ -141,7 +141,22 @@ R6. anchor_text and every pull_quote must be literal substrings of raw_text afte
 R7. If taste-thin, use the warning prefix and under-deliver honestly. Do not pad.
 R8. Output ONLY the raw JSON object. No prose around it. No markdown code fences.
     No preamble. No "Here is the JSON:". The first character of your output is "{"
-    and the last is "}".`;
+    and the last is "}".
+
+=== JSON FORMATTING, NON-NEGOTIABLE ===
+
+Your output MUST be valid JSON parseable by JSON.parse() in strict mode.
+Inside every string value:
+  - Escape newline as \\n (backslash + n), never a raw line break.
+  - Escape carriage return as \\r.
+  - Escape tab as \\t.
+  - Escape double quote as \\" (backslash + quote).
+  - Escape backslash as \\\\.
+Do not include trailing commas.
+Do not use single quotes for JSON strings.
+Keys and string values use double quotes only.
+If a pull_quote contains a newline in the source, the string value still uses \\n;
+never embed a real newline into the JSON.`;
 
 export function buildAugmentedPrompt(
   article: Article,
