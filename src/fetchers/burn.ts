@@ -6,8 +6,10 @@ const SUPABASE_URL = 'https://juqtxylquemiuvvmgbej.supabase.co';
 const ANON_KEY = 'sb_publishable_reVgmmCC6ndIo6jFRMM2LQ_wujj5FrO';
 const EXCHANGE_TIMEOUT_MS = 30_000;
 const LIST_TIMEOUT_MS = 30_000;
-const BOOKMARK_LIST_PATH =
-  '/rest/v1/bookmarks?select=title,url,platform,status,created_at,content_metadata&status=in.(read,absorbed,ash,active)&order=created_at.desc&limit=200';
+// Match the Burn iOS "Flame tab" semantic: status=active AND countdown_expires_at > now.
+// Not time-windowed — Flame is a state queue, not a sliding window.
+const BOOKMARK_LIST_TEMPLATE =
+  '/rest/v1/bookmarks?select=title,url,platform,status,created_at,updated_at,countdown_expires_at,content_metadata&status=eq.active&countdown_expires_at=gt.{NOW}&order=created_at.desc&limit=100';
 
 interface BurnBookmark {
   title?: string | null;
@@ -15,6 +17,8 @@ interface BurnBookmark {
   platform?: string | null;
   status?: string | null;
   created_at: string;
+  updated_at?: string | null;
+  countdown_expires_at?: string | null;
   content_metadata?: unknown;
 }
 
@@ -57,10 +61,12 @@ export class BurnFetcher implements Fetcher {
     const jwt = await this.exchangeMcpToken(mcpToken);
     const bookmarks = await this.listBookmarks(jwt);
 
-    const cutoffMs = Date.now() - this.cfg.since_hours * 3600 * 1000;
+    const now = Date.now();
     const recent = bookmarks.filter((b) => {
-      const ts = Date.parse(b.created_at);
-      return Number.isFinite(ts) && ts >= cutoffMs;
+      const createdMs = Date.parse(b.created_at);
+      // Guard against future-dated rows (vault-seed pollution writes created_at years ahead).
+      if (Number.isFinite(createdMs) && createdMs > now) return false;
+      return true;
     });
 
     const articles: Article[] = [];
@@ -138,7 +144,8 @@ export class BurnFetcher implements Fetcher {
   }
 
   private async listBookmarks(jwt: string): Promise<BurnBookmark[]> {
-    const endpoint = `${SUPABASE_URL}${BOOKMARK_LIST_PATH}`;
+    const nowIso = encodeURIComponent(new Date().toISOString());
+    const endpoint = `${SUPABASE_URL}${BOOKMARK_LIST_TEMPLATE.replace('{NOW}', nowIso)}`;
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), LIST_TIMEOUT_MS);
 
