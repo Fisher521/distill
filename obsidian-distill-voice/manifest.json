@@ -1,0 +1,10 @@
+{
+  "id": "obsidian-distill-voice",
+  "name": "Distill Voice Companion",
+  "version": "0.1.0",
+  "minAppVersion": "0.15.0",
+  "description": "Talk to Distill inside the note you are reading and insert inline callouts without leaving Obsidian.",
+  "author": "Fisher521",
+  "authorUrl": "https://github.com/Fisher521",
+  "isDesktopOnly": true
+}

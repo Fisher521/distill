@@ -1,0 +1,23 @@
+{
+  "name": "obsidian-distill-voice",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Voice-first reading companion for Obsidian, built on Distill's LLM adapters.",
+  "main": "main.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc --noEmit && node esbuild.config.mjs production",
+    "check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "obsidian": "latest",
+    "undici": "^6.21.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.4",
+    "esbuild": "^0.25.5",
+    "tslib": "^2.8.1",
+    "typescript": "^5.8.3"
+  }
+}
