@@ -18,7 +18,7 @@ So I built distill to close the read → react loop. Talk to it while you read; 
 
 - **Stage 1: AI triage** — scans the last 24h of bookmarks, recommends per article: read yourself / delegate to Claude / skip / cluster with similar pieces.
 - **Stage 2: Augmented reading** — generates a single document with the original text, Claude's analysis, and artifact callouts interwoven (not stacked). The original author's voice is preserved via pull quotes.
-- **Voice companion** — `⌥Space` to talk, Claude reacts inline (written back into the document), edge-tts reads back. Your eyes never leave the article.
+- **Voice companion (Obsidian plugin, alpha)** — `Mod+Shift+V` inside any note: speak a question, Claude writes one inline callout back into the document, macOS `say` reads it aloud. See [`obsidian-distill-voice/`](./obsidian-distill-voice).
 
 ## Install
 
@@ -48,17 +48,17 @@ distill fetch --source local --input urls.txt
 - **Any markdown URL list** — the default. A plain text file, one URL per line.
 - **[burn451.cloud](https://www.burn451.cloud?ref=distill&utm_source=github)** — my curated AI bookmark SaaS. 2-minute signup, the cleanest source. _(We dogfood this.)_
 - **Obsidian** — if you already live there, distill drops markdown into any vault folder. No plugin needed.
-- **NotebookLM artifacts** (opt-in, Tier 3) — 9 media formats (podcast, slides, video, infographic, quiz, flashcards, mind map, data table, report). Requires a Google account.
+- **NotebookLM artifacts** — roadmap item, not shipped. Planned: podcast/slides/video/infographic via [`notebooklm-client`](https://github.com/icebear0828/notebooklm-client). Follow [JOURNAL.md](./JOURNAL.md) for progress.
 
 ## Dependency tiers
 
-| Tier | Tools | Install |
-|------|-------|---------|
-| **1 — native** | macOS `say`, Chrome Web Speech API | zero install |
-| **2 — one-line** | whisper.cpp, edge-tts, Jina Reader, mermaid-cli | `brew install` / `pipx install` / `npm i` |
-| **3 — opt-in** | ElevenLabs, notebooklm-client | `distill upgrade <name>` |
+| Tier | Tools | Install | Status |
+|------|-------|---------|--------|
+| **1 — native** | macOS `say`, Chrome Web Speech API, Jina Reader (free tier) | zero install | ✅ shipped |
+| **2 — one-line** | whisper.cpp, edge-tts, mermaid-cli | `brew install` / `pipx install` / `npm i` | whisper-cli ✅ / edge-tts 🗺️ roadmap |
+| **3 — opt-in** | ElevenLabs, notebooklm-client | `distill upgrade <name>` | 🗺️ roadmap |
 
-Every feature has a Tier 1 fallback. A single dependency failure never kills the tool.
+Every Tier 1 feature has a native fallback. A single dependency failure never kills the tool. Tier 2/3 status is tracked in [JOURNAL.md](./JOURNAL.md).
 
 ## Status
 

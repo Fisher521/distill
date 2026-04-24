@@ -10,6 +10,9 @@ export interface DistillVoiceSettings {
   whisperBinary: string;
   whisperModelPath: string;
   claudeBinary: string;
+  ttsEnabled: boolean;
+  ttsVoice: string;
+  ttsRate: number;
 }
 
 export const DEFAULT_SETTINGS: DistillVoiceSettings = {
@@ -21,4 +24,7 @@ export const DEFAULT_SETTINGS: DistillVoiceSettings = {
   whisperBinary: 'whisper-cli',
   whisperModelPath: '~/.distill/models/ggml-base.bin',
   claudeBinary: 'claude',
+  ttsEnabled: true,
+  ttsVoice: 'Tingting',
+  ttsRate: 190,
 };

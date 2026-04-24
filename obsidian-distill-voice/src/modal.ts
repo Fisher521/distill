@@ -1,6 +1,7 @@
 import { MarkdownView, Modal, Notice } from 'obsidian';
 import { insertCalloutAtCursor, renderCalloutBlock } from './markdown.js';
 import { DistillSpeechSession } from './services/speech.js';
+import { isMacOSSayAvailable, speakWithMacOS } from './services/tts.js';
 import type { Callout } from './distill-compat.js';
 import type DistillVoicePlugin from './main.js';
 
@@ -17,6 +18,7 @@ export class DistillVoiceModal extends Modal {
   private insertButton!: HTMLButtonElement;
   private recordButton!: HTMLButtonElement;
   private stopButton!: HTMLButtonElement;
+  private playButton!: HTMLButtonElement;
 
   constructor(
     private readonly plugin: DistillVoicePlugin,
@@ -85,9 +87,13 @@ export class DistillVoiceModal extends Modal {
     this.insertButton = this.createButton(controls, 'Insert callout', 'distill-voice-button-ghost', () => {
       this.insertCallout();
     });
+    this.playButton = this.createButton(controls, 'Play', 'distill-voice-button-ghost', () => {
+      void this.playCallout();
+    });
     this.stopButton.disabled = true;
     this.askButton.disabled = true;
     this.insertButton.disabled = true;
+    this.playButton.disabled = true;
 
     const status = primaryPanel.createDiv({ cls: 'distill-voice-status' });
     const statusText = status.createDiv({ cls: 'distill-voice-status-text' });
@@ -250,7 +256,11 @@ export class DistillVoiceModal extends Modal {
       this.generatedCallout = callout;
       this.previewEl.setText(renderCalloutBlock(callout));
       this.insertButton.disabled = false;
+      this.playButton.disabled = !isMacOSSayAvailable();
       this.setStatus('Callout ready');
+      if (this.plugin.settings.ttsEnabled && isMacOSSayAvailable()) {
+        void this.playCallout();
+      }
     } catch (err) {
       this.previewEl.setText(err instanceof Error ? err.message : String(err));
       this.setStatus('Callout generation failed');
@@ -269,5 +279,32 @@ export class DistillVoiceModal extends Modal {
     this.setStatus('Callout inserted');
     new Notice('Distill callout inserted.');
     this.close();
+  }
+
+  private async playCallout(): Promise<void> {
+    if (!this.generatedCallout) {
+      return;
+    }
+    if (!isMacOSSayAvailable()) {
+      new Notice('Read-back requires macOS `say`. Disable TTS or run on macOS.');
+      return;
+    }
+
+    this.playButton.disabled = true;
+    this.setStatus('Reading callout aloud');
+    try {
+      await speakWithMacOS({
+        text: this.generatedCallout.body,
+        voice: this.plugin.settings.ttsVoice,
+        rate: this.plugin.settings.ttsRate,
+      });
+      this.setStatus('Read-back complete');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.setStatus(`Read-back failed: ${message}`);
+      new Notice(`TTS failed: ${message}`);
+    } finally {
+      this.playButton.disabled = false;
+    }
   }
 }

@@ -126,5 +126,42 @@ export class DistillVoiceSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           }),
       );
+
+    new Setting(containerEl)
+      .setName('Read callout aloud')
+      .setDesc('After a callout is generated, play it back via the macOS `say` command. macOS only.')
+      .addToggle((toggle) =>
+        toggle.setValue(this.plugin.settings.ttsEnabled).onChange(async (value) => {
+          this.plugin.settings.ttsEnabled = value;
+          await this.plugin.saveSettings();
+        }),
+      );
+
+    new Setting(containerEl)
+      .setName('TTS voice')
+      .setDesc('macOS voice name. Run `say -v ?` in a terminal to see what is installed. Tingting is zh-CN.')
+      .addText((text) =>
+        text
+          .setPlaceholder('Tingting')
+          .setValue(this.plugin.settings.ttsVoice)
+          .onChange(async (value) => {
+            this.plugin.settings.ttsVoice = value.trim();
+            await this.plugin.saveSettings();
+          }),
+      );
+
+    new Setting(containerEl)
+      .setName('TTS rate (words per minute)')
+      .setDesc('macOS `say -r` value. 180-220 is a comfortable reading cadence.')
+      .addText((text) =>
+        text
+          .setPlaceholder('190')
+          .setValue(String(this.plugin.settings.ttsRate))
+          .onChange(async (value) => {
+            const parsed = Number.parseInt(value.trim(), 10);
+            this.plugin.settings.ttsRate = Number.isFinite(parsed) && parsed > 0 ? parsed : 190;
+            await this.plugin.saveSettings();
+          }),
+      );
   }
 }
