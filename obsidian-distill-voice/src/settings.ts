@@ -139,10 +139,10 @@ export class DistillVoiceSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('TTS voice')
-      .setDesc('macOS voice name. Run `say -v ?` in a terminal to see what is installed. Tingting is zh-CN.')
+      .setDesc('macOS voice name. Run `say -v ?` in a terminal to list installed voices. Leave blank to use the system default.')
       .addText((text) =>
         text
-          .setPlaceholder('Tingting')
+          .setPlaceholder('Sandy (Chinese (China mainland))')
           .setValue(this.plugin.settings.ttsVoice)
           .onChange(async (value) => {
             this.plugin.settings.ttsVoice = value.trim();

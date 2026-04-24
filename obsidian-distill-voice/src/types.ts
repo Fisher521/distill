@@ -25,6 +25,6 @@ export const DEFAULT_SETTINGS: DistillVoiceSettings = {
   whisperModelPath: '~/.distill/models/ggml-base.bin',
   claudeBinary: 'claude',
   ttsEnabled: true,
-  ttsVoice: 'Tingting',
+  ttsVoice: 'Sandy (Chinese (China mainland))',
   ttsRate: 190,
 };
